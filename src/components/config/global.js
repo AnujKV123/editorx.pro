@@ -7,17 +7,22 @@ export const getHost =() =>{
     switch(currentHost) {
         case 'localhost':           //local
             return {
-                // API_HOST_LIVE:"http://localhost:8000/api/v1/users",
-                // API_HOST_DOCUMENT:"http://localhost:8000/api/v1/documents",
+                API_HOST_LIVE:"http://localhost:8000/api/v1/users",
+                API_HOST_DOCUMENT:"http://localhost:8000/api/v1/documents",
+                HOST_URL:"http://localhost:8000",
+            }
+
+        case 'editorx-pro.netlify.app':           //live
+            return {
                 API_HOST_LIVE:"https://real-time-text-editor-backed.onrender.com/api/v1/users",
                 API_HOST_DOCUMENT:"https://real-time-text-editor-backed.onrender.com/api/v1/documents",
+                HOST_URL:"https://real-time-text-editor-backed.onrender.com",
             }
         default:
             return {
-                // API_HOST_LIVE:"http://localhost:8000/api/v1/users",
-                // API_HOST_DOCUMENT:"http://localhost:8000/api/v1/documents",
-                API_HOST_LIVE:"https://real-time-text-editor-backed.onrender.com/api/v1/users",
-                API_HOST_DOCUMENT:"https://real-time-text-editor-backed.onrender.com/api/v1/documents",
+                API_HOST_LIVE:"http://localhost:8000/api/v1/users",
+                API_HOST_DOCUMENT:"http://localhost:8000/api/v1/documents",
+                HOST_URL:"http://localhost:8000",
             }
       }
 }

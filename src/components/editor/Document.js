@@ -29,8 +29,13 @@ const Document = () => {
 
     useEffect(() => {
         async function fetchData(){
-            const documents = await ApiService.getUserDocuments(user.email, accessToken);
-            setDocuments(documents.data)
+            try{
+                const documents = await ApiService.getUserDocuments(user.email, accessToken);
+                setDocuments(documents.data)
+            }
+            catch(error){
+                toast({ title: "Some error occured, please refresh the page 😌."})
+            }
         }
         fetchData()
     }, [setDocuments])
@@ -38,7 +43,7 @@ const Document = () => {
     const createNewDocument = useCallback(async () => {
         if(user.subscription_plan==="Free" && documents.length<10){
             console.log("doc::", "event fired", documents.length)
-            navigate(`${window.location.pathname}/${uuidV4()}`);
+            navigate(`${window.location.pathname}/${uuidV4()}?name=document`);
         }
         else{
             toast({ title: "Your free plan only allows 10 documents, please upgrade your plan 😊."})
@@ -46,32 +51,34 @@ const Document = () => {
     }, [user.subscription_plan, documents.length, toast])
 
   return (
-    <div className=' flex justify-center w-full mt-10 md:w-1/2 md:relative md:top-1/5 md:left-1/4'>
-    <Card className="lg:w-[800px] lg:h-[500px] md:w-[500px] md:h-[400px] sm:w-[300px] sm:h-[600px]">
+    <div className=' flex justify-center w-full mt-10 md:top-1/5 md:left-1/4'>
+    <Card className="lg:w-[800px] lg:h-[500px] md:w-[700px] md:h-[500px] sm:w-[300px] sm:h-[620px]">
         <CardHeader>
             <CardTitle className="text-center">Document</CardTitle>
             {/* <CardDescription></CardDescription> */}
         </CardHeader>
         <CardContent>
-            <div className="flex justify-around items-center mt-5 ">
+            <div className="flex md:justify-around lg:justify-around items-center mt-5 lg:flex-row md:flex-row flex-col justify-center">
                 <div className='text-center'>
                     <p className='mb-3'>Documents</p>
                     <ScrollArea className="h-72 w-64 rounded-md border">
                     <div className="p-4">
-                        {documents.map((tag) => (
+                        {documents.length > 0 ? documents.map((tag) => (
                         <>
-                            <Link to={`/document/${tag._id}`}>
+                            <Link to={`/document/${tag._id}?name=${tag.document_name}`}>
                                 <div key={tag._id} className="text-sm cursor-pointer" >
                                 {tag.document_name}
                                 </div>
                             </Link>
                             <Separator className="my-2" />
                         </>
-                        ))}
+                        )) : 
+                        <div className="text-sm">No documents to show </div>
+                        }
                     </div>
                     </ScrollArea>
                 </div>
-                <div className='text-center'>
+                <div className='text-center mt-5 lg:mt-0 md:mt-0'>
                     <p>Create New</p>
                     <div className='border-dotted border-2 p-5 rounded-sm mt-3 cursor-pointer' onClick={createNewDocument}>
                         <FileText size={150} absoluteStrokeWidth />

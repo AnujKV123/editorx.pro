@@ -23,16 +23,16 @@ import { plans } from '../common/CommonValues';
   /** @type {SignupStateType} */
   export const signUpSchema = z.object({
     username: z.string().min(5, {
-      message: "Username must be at least 5 characters.",
+      message: "username must be at least 5 characters long.",
     }),
     email: z.string().email({message: "email must be valid"}).min(5, {
-        message: "Email must be at least 5 characters.",
+        message: "email must be at least 5 characters long.",
       }),
     fullname: z.string().min(4, {
-      message: "fullname must be at least 4 characters.",
+      message: "fullname must be at least 4 characters long.",
     }),
     password: z.string().min(8, {
-      message: "Username must be at least 8 characters.",
+      message: "password must be at least 8 characters long.",
     }),
     subscription_plan: z.string().min(2, {
       message: "subscription plan is required.",
@@ -55,31 +55,38 @@ import { plans } from '../common/CommonValues';
 /** @type {LoginStateType} */
 export const logInSchema = z.object({
   username: z.string().min(5, {
-    message: "Username must be at least 5 characters.",
+    message: "username must be at least 5 characters long.",
   }),
   password: z.string().min(8, {
-    message: "Username must be at least 8 characters.",
+    message: "password must be at least 8 characters long.",
   }),
 })
 
 
    /**
- * @typedef updateDocumentNameStateType
- * @property {string} documentName
- * @property {string} new
+ * @typedef changePasswordSchemaStateType
+ * @property {string} userName
+ * @property {string} oldPassword
+ * @property {string} newPassword
  */
 
 
- /** @type {updateDocumentNameStateType} */
- export const updateDocumentNameDefaultValue = {
-  documentName: "",
-  new: "no",
+ /** @type {changePasswordSchemaStateType} */
+ export const changePasswordSchemaDefaultValue = {
+  userName: "",
+  oldPassword: "",
+  newPassword: "",
 }
 
-/** @type {updateDocumentNameStateType} */
-export const updateDocumentNameSchema = z.object({
-  documentName: z.string().min(5, {
-    message: "Username must be at least 5 characters.",
+/** @type {changePasswordSchemaStateType} */
+export const changePasswordSchema = z.object({
+  userName: z.string().min(5, {
+    message: "username must be at least 5 characters long.",
   }),
-  new: z.string(),
+  oldPassword: z.string().min(8, {
+    message: "password must be at least 8 characters.",
+  }),
+  newPassword: z.string().min(8, {
+    message: "password must be at least 8 characters.",
+  }),
 })

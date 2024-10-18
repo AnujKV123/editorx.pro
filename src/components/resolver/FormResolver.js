@@ -5,8 +5,8 @@ import { signUpSchema,
     signUpSchemaDefaultValue,
     logInSchema,
     logInSchemaDefaultValue,
-    updateDocumentNameSchema,
-    updateDocumentNameDefaultValue
+    changePasswordSchema,
+    changePasswordSchemaDefaultValue
  } from '../schema/FormShema';
 
 
@@ -31,16 +31,16 @@ export const FormResolvers = ()=>{
     })
     
      /**
-   * @type {import("../schema/FormShema").updateDocumentNameStateType}
+   * @type {import("../schema/FormShema").changePasswordSchemaStateType}
    */
-     const updateDocumentNameResolver = useForm({
-        resolver: zodResolver(updateDocumentNameSchema),
-        defaultValues: updateDocumentNameDefaultValue
+     const changePasswordResolver = useForm({
+        resolver: zodResolver(changePasswordSchema),
+        defaultValues: changePasswordSchemaDefaultValue
     })
 
     return{
         signUpResolver,
         logInResolver,
-        updateDocumentNameResolver
+        changePasswordResolver
     }
 }

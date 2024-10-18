@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from "../ui/button"
 import { Form } from "../ui/form"
 import { FormResolvers } from '../resolver/FormResolver'
@@ -8,6 +8,7 @@ import { plans } from '../common/CommonValues'
 import { useNavigate } from 'react-router-dom'
 import ApiService from '../Services/Api.service'
 import { useToast } from '../ui/use-toast'
+import { Loader2 } from 'lucide-react'
 import 
 {
   Card,
@@ -22,29 +23,32 @@ const SignUp = () => {
     const navigate = useNavigate()
     const {signUpResolver} = FormResolvers()
     const { toast } = useToast()
+    const [loader, setLoader] = useState(false)
     // const { watch, register,setValue, formState: { errors}} = signUpResolver
 
     
 
     const onSubmitFunc = async(data) => {
+        setLoader(true)
+        toast({ title: "creating user, please wait... 😊." });
         try{
             const dataset = await ApiService.register(data);
             const mydata = dataset.data;
             if(dataset.success){
-                // toast({
-                //     title: "User registered successfully !",
-                //     description: `${mydata.username} has been created successfully. Please login to continue.`,
-                // })
+                setLoader(false)
+                toast({
+                    title: "User registered successfully !",
+                    description: `${mydata.username} created successfully. Please login to continue 😊.`,
+                })
                 navigate("/login");
             }
             
         }
         catch(error){
-            toast({
-                title: "Error occured !",
-                description: error,
-            })
+            setLoader(false)
+            toast({ title: "user already exist, please try with different username and email 😊." });
         }
+        setLoader(false)
     }
 
     const selectContent = [{lable:"Free", value: plans.FREE}, 
@@ -104,7 +108,15 @@ const SignUp = () => {
                             placeholder="please select the subscription plan"
                             content = {selectContent}
                         />
-                        <Button type="submit" className="w-full">Submit</Button>
+                        <Button disabled={loader} type="submit" className="w-full">
+                            {loader?
+                            <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Please Wait
+                            </>
+                            :
+                            "Submit"}
+                        </Button>
                     </form>
                 </Form>
             </CardContent>

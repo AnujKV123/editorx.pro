@@ -12,7 +12,7 @@ const login = async (data) => {
         body: JSON.stringify(data)
       });
       if (!response.ok) {
-        throw new Error('Network error when trying to login');
+        throw new Error(await response.error());
       }
       const responseData = await response.json();
       return responseData;
@@ -123,6 +123,27 @@ const updateUserAvatar = async (data, accessToken) => {
     }
   }
 
+const changePassword = async (data) => {
+    try {
+      const response = await fetch(getHost().API_HOST_LIVE + "/change-password", {
+        method: 'POST',
+        headers: {
+          // 'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        throw new Error('Network error when trying to get user Documents');
+      }
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      throw error
+    }
+  }
+
 const updateDocumentName = async (data, accessToken) => {
     try {
       const response = await fetch(getHost().API_HOST_DOCUMENT + "/update-document-name", {
@@ -195,6 +216,7 @@ const verigyUser = async (data, accessToken) => {
     createDocument,
     updateDocumentName,
     verigyUser,
-    updateUserAvatar
+    updateUserAvatar,
+    changePassword
   }
   export default ApiService

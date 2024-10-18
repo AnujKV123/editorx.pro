@@ -7,8 +7,6 @@ import FormItemCmp from '../common/FormItem'
 import { inputTypes } from '../common/CommonValues'
 import { useNavigate } from 'react-router-dom'
 import ApiService from '../Services/Api.service'
-import { useDispatch } from 'react-redux'
-import { userLogin } from '../User/userSlice'
 import { useToast } from '../ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import 
@@ -18,31 +16,24 @@ import
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter
 } from "../ui/card"
 
 
-const Login = () => {
+const ChangePassword = () => {
     const navigate = useNavigate()
-    const {logInResolver} = FormResolvers()
-    const dispatch = useDispatch();
+    const {changePasswordResolver} = FormResolvers()
     const { toast } = useToast();
     const [loader, setLoader] = useState(false)
 
     const onSubmitFunc = async(data) => {
         setLoader(true)
-        toast({ title: "Logging in, please wait 😊." });
+        toast({ title: "changing password, please wait 😊." });
         try{
-            const dataset = await ApiService.login(data);
-            const mydata = dataset.data;
-            if(mydata.accessToken){
-                dispatch(userLogin({isAuthenticated: true, 
-                    accessToken: mydata.accessToken, 
-                    refreshToken: mydata.refreshToken, 
-                    user: mydata.user}));
-                    setLoader(false)
-                    toast({ title: "Logged in successfully 😊." });
-                navigate(`/document`);
+            const response = await ApiService.changePassword(data);
+            if(response.statusCode === 200){
+                toast({ title: "password changed successfully, please login 😊." });
+                setLoader(false)
+                navigate(`/login`);
             }
             setLoader(false)
         }
@@ -50,36 +41,43 @@ const Login = () => {
             setLoader(false)
             toast({ title: "username and password does not match, please try again 😌." });
         }
-        setLoader(false)
     }
   return (
     <div className=' flex justify-center w-full mt-10 md:w-1/2 md:relative md:top-1/5 md:left-1/4'>
     <Card className="w-[350px] ">
         <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle>Change Password</CardTitle>
             <CardDescription>Don't have an account? <Button variant="link" onClick={() => navigate("/register")}>SignUp</Button></CardDescription>
         </CardHeader>
         <CardContent>
-            <Form {...logInResolver}>
-                <form onSubmit={logInResolver.handleSubmit(onSubmitFunc)} className="space-y-8">
+            <Form {...changePasswordResolver}>
+                <form onSubmit={changePasswordResolver.handleSubmit(onSubmitFunc)} className="space-y-8">
                     <FormItemCmp 
                         lable="User Name" 
                         placeholder="username" 
-                        name="username"
+                        name="userName"
                         type="text" 
                         // description="" 
-                        control={logInResolver.control} 
+                        control={changePasswordResolver.control} 
                         fieldType={inputTypes.INPUTFIELD}
                     />
                     <FormItemCmp 
-                        lable="Password" 
-                        placeholder="password"
-                        name="password" 
+                        lable="Old Password" 
+                        placeholder="old password"
+                        name="oldPassword" 
                         type="password" 
-                        control={logInResolver.control} 
+                        control={changePasswordResolver.control} 
                         fieldType={inputTypes.INPUTFIELD}
                     />
-                    <Button disabled={loader} type="submit" className="w-full">
+                    <FormItemCmp 
+                        lable="New Password" 
+                        placeholder="new password"
+                        name="newPassword" 
+                        type="password" 
+                        control={changePasswordResolver.control} 
+                        fieldType={inputTypes.INPUTFIELD}
+                    />
+                    <Button type="submit" disabled={loader} className="w-full">
                         {loader?
                         <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -88,15 +86,12 @@ const Login = () => {
                         :
                         "Submit"}
                     </Button>
-            </form>
+                </form>
             </Form>
         </CardContent>
-        <CardFooter>
-        <Button variant="link" onClick={() => navigate("/change-password")}>Change Password</Button>
-        </CardFooter>
     </Card>
     </div>
   )
 }
 
-export default Login
+export default ChangePassword

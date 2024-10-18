@@ -7,7 +7,7 @@ import {
     SheetFooter
   } from "../ui/sheet"
   import { Button } from "../ui/button"
-  import React, { useRef } from 'react'
+  import React, { useRef, useState } from 'react'
   import { useNavigate } from "react-router-dom"
   import { Cross2Icon } from "@radix-ui/react-icons"
   import ApiService from "../Services/Api.service"
@@ -15,6 +15,7 @@ import {
   import { useDispatch, useSelector } from "react-redux"
   import { userLogout, updateAvatar } from "./userSlice"
   import { useToast } from "../ui/use-toast"
+  import { Loader2 } from "lucide-react"
 
 
   export const handleLogOut = async(accessToken) => {
@@ -32,17 +33,23 @@ import {
     const user = useSelector((state) => state.user);
     const fileInputRef = useRef(null);
     const { toast } = useToast()
+    const [loaderLogout, setLoaderLogout] = useState(false)
+    const [loaderAvatar, setLoaderAvatar] = useState(false)
 
 
     const LogOut = async() => {
+        setLoaderLogout(true)
         try{
            const res = await handleLogOut(token)
            if(res){
+            setLoaderLogout(false)
             dispatch(userLogout())
             navigate("/login")
            }
+           setLoaderLogout(false)
         }
         catch(error){
+            setLoaderLogout(false)
             throw error
         }
     }
@@ -56,6 +63,7 @@ import {
         // Get the selected file
         event.preventDefault()
         const file = event.target.files[0];
+        setLoaderAvatar(true)
         try{
             if(file){
                 const formData = new FormData();
@@ -65,6 +73,7 @@ import {
                 const response = await ApiService.updateUserAvatar(formData, token);
                 if(response.statusCode===200 && response.data){
                     dispatch(updateAvatar({user:response.data}))
+                    setLoaderAvatar(false)
                     toast({
                         title: "Avatar updated successfully 😊!",
                     })
@@ -73,18 +82,22 @@ import {
                     toast({
                         title: "Some error occured, please try again 😌."
                     })
+                    setLoaderAvatar(false)
                 }
             }
             else{
                 toast({
                     title: "Some error occured, please try again 😌."
                 })
+                setLoaderAvatar(false)
             }
+            setLoaderAvatar(false)
         }
         catch(error){
             toast({
                 title: "Some error occured, please try again 😌."
             })
+            setLoaderAvatar(false)
         }
     };
     return (
@@ -99,7 +112,15 @@ import {
                     <div className="flex flex-col justify-center items-center w-full mb-5">
                         <div className="userProfilePic text-center w-32">
                             <img className="rounded-full w-28 h-28 p-2 mb-2 border-2 border-blue-500" src={user.avatar===""?defaltAvatar:user.avatar} alt="" />
-                            <Button variant="outline" className="w-full" onClick={handleUpdateAvatarClick}>Update Avatar</Button>
+                            <Button variant="outline" className="w-full" disabled={loaderAvatar} onClick={handleUpdateAvatarClick}>
+                                {loaderAvatar?
+                                <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Please Wait
+                                </>
+                                :
+                                "Update Avatar"}
+                            </Button>
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -117,7 +138,15 @@ import {
                 </SheetDescription>
             </SheetHeader>
             <SheetFooter>
-                <Button variant="destructive" className="w-full" onClick={() => LogOut()}>Log Out</Button>
+                <Button variant="destructive" disabled={loaderLogout} className="w-full" onClick={() => LogOut()}>
+                    {loaderLogout?
+                    <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please Wait
+                    </>
+                    :
+                    "Log Out"}
+                </Button>
             </SheetFooter>
         </SheetContent>
     </Sheet>

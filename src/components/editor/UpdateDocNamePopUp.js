@@ -34,7 +34,7 @@ const UpdateDocNamePopUp = ({documentId, newId, content, isOpen, closeDialog}) =
                 if(veifyUser.statusCode===200&& veifyUser.data===true){
                     const response = await ApiService.createDocument({id:newId, documentName:documentName, content: await content(), user_email:user.email}, accessToken);
                     if(response.statusCode===200 && response.data){
-                        navigate(`/document/${newId}`)
+                        navigate(`/document/${newId}?name=${documentName}`)
                         toast({
                             title: "New document created successfully 😊!",
                         })
@@ -51,6 +51,7 @@ const UpdateDocNamePopUp = ({documentId, newId, content, isOpen, closeDialog}) =
             else{
                 const response = await ApiService.updateDocumentName({id:documentId, documentName:documentName}, accessToken);
                 if(response.statusCode===200){
+                    navigate(`/document/${documentId}?name=${documentName}`)
                     toast({
                         title: "Document name updated successfully 😊!",
                     })
@@ -58,7 +59,7 @@ const UpdateDocNamePopUp = ({documentId, newId, content, isOpen, closeDialog}) =
             }
         }
         catch(error){
-            throw error
+            toast({ title: "Some error occured, please try again 😌."})
         }
 
     })

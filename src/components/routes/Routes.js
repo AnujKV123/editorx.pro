@@ -8,8 +8,9 @@ import Document from "../editor/Document"
 import { isTokenExpired } from "../config/global"
 import { useSelector, useDispatch } from "react-redux"
 import { userLogout } from "../User/userSlice"
+import CommingSoon from "../other/CommingSoon"
+import ChangePassword from "../dashboard/ChangePass"
 import ApiService from "../Services/Api.service"
-import { useToast } from "../ui/use-toast"
 
 export const PublicRoute = ({children}) => {
     const isAuthenticated = useSelector((state) => state.isAuthenticated);
@@ -28,6 +29,9 @@ export const ProtectedRoute = ({children}) => {
     return isAuthenticated ? children : <Navigate to="/register"/>
 }
 
+// export const AllRoute = ({children}) => {
+//     return isAuthenticated ? children : <Navigate to="/register"/>
+// }
 
 
 const routesData = [
@@ -47,6 +51,11 @@ const routesData = [
         outlet: <Login />
     },
     {
+        path: "/change-password",
+        element: <PublicRoute><Layout /></PublicRoute>,
+        outlet: <ChangePassword />
+    },
+    {
         path: "/document",
         element: <ProtectedRoute><Layout /></ProtectedRoute>,
         outlet: <Document />
@@ -55,6 +64,21 @@ const routesData = [
         path: "/document/:id",
         element: <ProtectedRoute><Layout /></ProtectedRoute>,
         outlet: <TextEditor />
+    },
+    {
+        path: "/docs",
+        element: <Layout />,
+        outlet: <CommingSoon />
+    },
+    {
+        path: "/pricing",
+        element: <Layout />,
+        outlet: <CommingSoon />
+    },
+    {
+        path: "/contact-us",
+        element: <Layout />,
+        outlet: <CommingSoon />
     },
 ]
 
