@@ -12,7 +12,7 @@ export const getHost =() =>{
                 HOST_URL:"http://localhost:8000",
             }
 
-        case 'editorx-pro.netlify.app':           //live
+        case 'editorx.pro':           //live
             return {
                 API_HOST_LIVE:"https://real-time-text-editor-backed.onrender.com/api/v1/users",
                 API_HOST_DOCUMENT:"https://real-time-text-editor-backed.onrender.com/api/v1/documents",

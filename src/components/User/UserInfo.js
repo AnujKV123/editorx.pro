@@ -3,7 +3,6 @@ import {
     SheetContent,
     SheetDescription,
     SheetHeader,
-    SheetTitle,
     SheetFooter
   } from "../ui/sheet"
   import { Button } from "../ui/button"

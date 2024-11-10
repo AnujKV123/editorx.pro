@@ -38,7 +38,7 @@ const Document = () => {
             }
         }
         fetchData()
-    }, [setDocuments])
+    }, [setDocuments, accessToken, toast, user.email])
 
     const createNewDocument = useCallback(async () => {
         if(user.subscription_plan==="Free" && documents.length<10){
@@ -48,7 +48,7 @@ const Document = () => {
         else{
             toast({ title: "Your free plan only allows 10 documents, please upgrade your plan 😊."})
         }
-    }, [user.subscription_plan, documents.length, toast])
+    }, [user.subscription_plan, documents.length, toast, navigate])
 
   return (
     <div className=' flex justify-center w-full mt-10 md:top-1/5 md:left-1/4'>

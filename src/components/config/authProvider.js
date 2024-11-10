@@ -38,7 +38,7 @@ export  const  useBackendTokenCheckExpirationTime  = () => {
                     return <Navigate to="/login"/>
                 }
         }
-    },[handleLogOut,isAuthenticated,refreshToken,token,dispatch]);
+    },[isAuthenticated,refreshToken,token,dispatch]);
 
     useEffect(() => {
         const  checkTokenExpiry  = () => {
@@ -55,6 +55,6 @@ export  const  useBackendTokenCheckExpirationTime  = () => {
         interval.current  =  setInterval(checkTokenExpiry, TOKEN_CHECK_INTERVAL);
         checkTokenExpiry(); // Check token expiry immediately after mounting     
         return () =>  clearInterval(interval.current);
-    }, [acquireTokenWithRefreshToken,token]);
+    }, [acquireTokenWithRefreshToken,token, TOKEN_CHECK_INTERVAL]);
         return  null; // You might not need to return anything from this hook
 };

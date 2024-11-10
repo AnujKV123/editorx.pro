@@ -62,7 +62,7 @@ const UpdateDocNamePopUp = ({documentId, newId, content, isOpen, closeDialog}) =
             toast({ title: "Some error occured, please try again 😌."})
         }
 
-    })
+    }, [documentId, newId, content, saveAsNew, documentName, accessToken, user, navigate, toast, closeDialog])
 
   return (
     <Dialog open={isOpen}>

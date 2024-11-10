@@ -1,6 +1,6 @@
-import React, {useState } from 'react'
+import React from 'react'
 import Nav from './Nav'
-import Footer from './Footer'
+// import Footer from './Footer'
 import { Outlet } from 'react-router-dom'
 import { Toaster } from '../ui/toaster'
 const Layout = ({children}) => {

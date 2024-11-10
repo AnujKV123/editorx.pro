@@ -26,7 +26,7 @@ import { pdfExporter } from "quill-to-pdf";
 import * as quillToWord from "quill-to-word";
 
 
-const SAVE_INTERVAL_MS = 2000
+// const SAVE_INTERVAL_MS = 2000
 const TOOLBAR_OPTIONS = [
   [{ header: [1, 2, 3, 4, 5, 6, false] }],
   [{ font: [] }],
@@ -91,7 +91,7 @@ export default function TextEditor() {
       })
       socket.emit("get-document", documentId, user_email, user_fullname)
     }
-  }, [socket, quill, documentId])
+  }, [socket, quill, documentId, user_email, user_fullname, docName])
 
   useEffect(() => {
     if (socket == null || quill == null) return
@@ -108,7 +108,7 @@ export default function TextEditor() {
     // return () => {
     //   clearInterval(interval)
     // }
-  }, [socket, quill])
+  }, [socket, quill, user_email, user_fullname])
 
   useEffect(() => {
     if (socket == null || quill == null) return
