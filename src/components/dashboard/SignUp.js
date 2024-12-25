@@ -33,8 +33,12 @@ const SignUp = () => {
         toast({ title: "creating user, please wait... 😊." });
         try{
             const dataset = await ApiService.register(data);
+            const timeout = setTimeout(() => {
+                toast({ title: "The server is currently handling a high volume of requests. Please wait a moment 😊." });
+            }, 2000);
             const mydata = dataset.data;
             if(dataset.success){
+                clearTimeout(timeout);
                 setLoader(false)
                 toast({
                     title: "User registered successfully !",
