@@ -33,10 +33,10 @@ const Login = () => {
         setLoader(true)
         toast({ title: "Logging in, please wait 😊." });
         try{
-            const dataset = await ApiService.login(data);
             const timeout = setTimeout(() => {
                 toast({ title: "The server is currently handling a high volume of requests. Please wait a moment 😊." });
             }, 2000);
+            const dataset = await ApiService.login(data);
             const mydata = dataset.data;
             if(mydata.accessToken){
                 clearTimeout(timeout);
