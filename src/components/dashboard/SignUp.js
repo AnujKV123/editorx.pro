@@ -34,7 +34,7 @@ const SignUp = () => {
         try{
             const timeout = setTimeout(() => {
                 toast({ title: "The server is currently handling a high volume of requests. Please wait a moment 😊." });
-            }, 2000);
+            }, 4000);
             const dataset = await ApiService.register(data);
             const mydata = dataset.data;
             if(dataset.success){

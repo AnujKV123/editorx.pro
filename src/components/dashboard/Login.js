@@ -35,7 +35,7 @@ const Login = () => {
         try{
             const timeout = setTimeout(() => {
                 toast({ title: "The server is currently handling a high volume of requests. Please wait a moment 😊." });
-            }, 2000);
+            }, 4000);
             const dataset = await ApiService.login(data);
             const mydata = dataset.data;
             if(mydata.accessToken){
