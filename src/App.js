@@ -1,7 +1,7 @@
 
-import RouteHandelar from "./components/routes/RouteHandelar"
+import RouteHandelar from "./routes/RouteHandelar"
 import { Provider } from "react-redux"
-import { store } from "./components/store/store"
+import { store } from "./store/store"
 
 function App() {
   return (

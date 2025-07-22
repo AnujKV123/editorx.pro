@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom/client';
 import App from "./App"
 import "./styles.css"
 import reportWebVitals from './reportWebVitals';
-import { ThemeProvider } from "./components/ui/theme-provider";
+// import { ThemeProvider } from "./components/ui/theme-provider";
+import { ThemeProvider } from "./context/ThemeProvider";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    {/* <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme"> */}
+    <ThemeProvider defaultTheme="system" storageKey="collabedit-theme">
       <App />
     </ThemeProvider>
   </React.StrictMode>
