@@ -42,10 +42,10 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Product</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Enterprise</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+              <li><Link to={"#"} className="hover:text-white transition-colors">Features</Link></li>
+              <li><Link to={"#"}  className="hover:text-white transition-colors">Pricing</Link></li>
+              <li><Link to={"#"}  className="hover:text-white transition-colors">Enterprise</Link></li>
+              <li><Link to={"#"}  className="hover:text-white transition-colors">API</Link></li>
             </ul>
           </div>
 
@@ -53,10 +53,10 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Company</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+              <li><Link to={"#"} className="hover:text-white transition-colors">About</Link></li>
+              <li><Link to={"#"} className="hover:text-white transition-colors">Blog</Link></li>
+              <li><Link to={"#"} className="hover:text-white transition-colors">Careers</Link></li>
+              <li><Link to={"#"} className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
 
@@ -84,9 +84,9 @@ const Footer = () => {
             © 2025 editorX.pro . All rights reserved.
           </div>
           <div className="flex space-x-6 text-sm text-gray-400 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+            <Link to={"#"} className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to={"#"} className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link to={"#"} className="hover:text-white transition-colors">Cookie Policy</Link>
           </div>
         </div>
       </div>
