@@ -1,70 +1,209 @@
-# Getting Started with Create React App
+# 📝 editorX.pro
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack real-time collaborative text editor built for teams and individuals to co-author documents simultaneously with live presence indicators, secure user management, and invitation workflows.
 
-## Available Scripts
+Built with ❤️ using React.js, Node.js, Express.js, Yjs, and Firebase.
 
-In the project directory, you can run:
+## 🚀 Features
+- ✅ Google & Email/Password Authentication
+- ✅ Secure Firebase Token Verification (Frontend + Backend)
+- ✅ Real-time Collaborative Text Editing with Cursor Presence
+- ✅ Invite Collaborators by Email
+- ✅ Join/Accept Invitation Flow
+- ✅ Conflict-free Document Syncing via Yjs
+- ✅ Persistent Sessions and Token Handling
+- ✅ Scalable Backend APIs with Express.js
+- ✅ Responsive and Clean UI
 
-### `npm start`
+## 🧠 Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Layer        | Technology                                                 |
+| ------------ | ---------------------------------------------------------- |
+| **Frontend** | React.js, Firebase Auth SDK                                |
+| **Backend**  | Node.js, Express.js, Firebase Admin SDK                    |
+| **Authentication** | Firebase Authentication (Google + Email/Password)    |
+| **Realtime Sync** | Yjs + y-websocket for CRDT-based collaboration        |
+| **Editor**   | Tiptap Editor (Built on ProseMirror) + Yjs                 |
+| **Deployment** |  Netlify (Frontend), Render (Backend + WebSocket)          |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📽️ Demo
+- 🌐 Live Demo: https://editorx.pro
+- 🎥 Demo Video: Coming Soon
 
-### `npm test`
+## ⚙️ Setup Instructions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Frontend Setup
 
-### `npm run build`
+#### Prerequisites
+- Node.js (version 16 or higher)
+- npm or yarn package manager
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. *Clone the repository*
+   ```bash
+   git clone https://github.com/AnujKV123/editorx.pro.git
+   cd editorx.pro
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. *Install dependencies*
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-### `npm run eject`
+3. *Create a .env file with below details:*
+   ```bash
+    REACT_APP_API_KEY=
+    REACT_APP_AUTH_DOMAIN=
+    REACT_APP_PROJECT_ID=
+    REACT_APP_STORAGE_BUCKET=
+    REACT_APP_MESSAGE_SENDER_ID=
+    REACT_APP_APP_ID=
+    REACT_APP_MEASUREMENT_ID=
+    REACT_APP_SOCKET_URL=ws://localhost:1234
+    REACT_APP_BACKEND_URL=http://localhost:5000
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. *Start the development server*
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. *Open your browser*
+   Navigate to `http://localhost:4200` to view the application.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+#### Build for Production
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run build
+# or
+yarn build
+```
 
-## Learn More
+The built files will be available in the `dist` directory.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Backend Setup
 
-### Code Splitting
+#### Prerequisites
+- Node.js (version 16 or higher)
+- npm or yarn package manager
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### Installation
 
-### Analyzing the Bundle Size
+1. *Clone the repository*
+   ```bash
+   git clone https://github.com/AnujKV123/real-time-text-editor-backed.git
+   cd real-time-text-editor-backed
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+2. *Install dependencies*
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-### Making a Progressive Web App
+3. *Create a .env file with below details:*
+   ```bash
+    PORT=5000
+    MONGODB_URI=
+    CORS_ORIGIN=
+    CLOUDINARY_CLOUD_NAME=
+    CLOUDINARY_API_KEY=
+    CLOUDINARY_API_SECRET=
+    FIREBASE_TYPE=
+    FIREBASE_PROJECT_ID=
+    FIREBASE_PRIVATE_KEY_ID=
+    FIREBASE_PRIVATE_KEY=
+    FIREBASE_CLIENT_EMAIL=
+    FIREBASE_CLIENT_ID=
+    FIREBASE_AUTH_URI=
+    FIREBASE_TOKEN_URI=
+    FIREBASE_AUTH_PROVIDER_CERT_URL=
+    FIREBASE_CLIENT_CERT_URL=
+    FIREBASE_UNIVERSE_DOMAIN=
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+4. *Start the development server*
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-### Advanced Configuration
+5. Navigate to `http://localhost:5000` to use as Backend API.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+#### Build for Production
 
-### Deployment
+```bash
+npm run build
+# or
+yarn build
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### y-websocket setup
 
-### `npm run build` fails to minify
+#### Prerequisites
+- Node.js (version 16 or higher)
+- npm or yarn package manager
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#### Installation
+
+1. *Clone the repository*
+   ```bash
+   git clone https://github.com/AnujKV123/edirorx.pro-socket-server.git
+   cd edirorx.pro-socket-server
+   ```
+
+2. *Install dependencies*
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. *Create a .env file with below details:*
+   ```bash
+    PORT=1235
+    BACKEND_URL=http://localhost:5000
+   ```
+
+4. *Start the development server*
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Navigate to `WebSocket → ws://localhost:1235` to use as y-websocket API.
+
+#### Build for Production
+
+```bash
+npm run build
+# or
+yarn build
+```
+
+## 📌 Future Enhancements
+
+- Collaborative Code Editor with Live Sharing
+
+- Document Versioning and History
+
+- Commenting and Chat Feature
+
+- Export/Import in DOCX and PDF formats
+
+- Notification System for Invitations
+
+## 👨‍💻 Built By
+Anuj Verma – [GitHub](https://github.com/AnujKV123) | [LinkedIn](https://www.linkedin.com/in/anujverma11)
+
+## 🪪 License
+- This project is licensed under the MIT License.
