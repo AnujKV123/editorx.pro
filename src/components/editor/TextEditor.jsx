@@ -421,7 +421,7 @@ const RichTextEditor = () => {
     return null
   }
 
-  if (!authorized) {
+  if (!authorized && !isLoading) {
     return (
     <div className='flex justify-center items-center h-[85vh] flex-col'>
       <h1 className="text-2xl font-bold">You are not authorized to access this document</h1>
