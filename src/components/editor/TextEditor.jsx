@@ -65,7 +65,8 @@ const RichTextEditor = () => {
   const [authorized, setAuthorized] = useState(false);
   const [viewers, setViewers] = useState([]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [docContent, setDocContent] = useState('');
+  const [docContent, setDocContent] = useState(null);
+  const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const token = useSelector((state) => state.accessToken);
   const user = useSelector((state) => state.user);
@@ -105,6 +106,7 @@ const RichTextEditor = () => {
         if(response.statusCode === 200){
           setAuthorized(true)
           setDocContent(response.data.content)
+          setChatData(response.data.chat) 
         }
         setIsLoading(false);
       } catch (error) {
@@ -166,12 +168,6 @@ const RichTextEditor = () => {
     ? 'border-2 border-blue-500'
     : 'border-2 border-blue-400'
 
-  function isYDocEmpty(ydoc) {
-    const fragment = ydoc.getXmlFragment("default");
-    return fragment.length === 0;
-}
-
-  const isEmptyDoc = useMemo(() => isYDocEmpty(ydoc), [ydoc]);
 
   const editor = useEditor({
     key: isDarkMode ? 'dark-editor' : 'light-editor',
@@ -315,10 +311,23 @@ const RichTextEditor = () => {
   })
 
   useEffect(() => {
-    if(editor && isEmptyDoc){
+  if (!editor) return;
+
+  const handleBeforeUpdate = () => {
+    if(editor.isEmpty && docContent) {
       editor.commands.setContent(docContent)
+      if(yChatArray.toArray().length === 0 ){
+        yChatArray.push(chatData)
+      }
     }
-  }, [editor])
+  };
+
+  editor.on('focus', handleBeforeUpdate);
+
+  return () => {
+    editor.off('focus', handleBeforeUpdate);
+  };
+}, [editor, docContent, chatData]);
 
   const addImage = () => {
     const url = window.prompt('Enter the URL of the image:')
@@ -412,7 +421,7 @@ const RichTextEditor = () => {
     return null
   }
 
-  if (!authorized && !isLoading) {
+  if (!authorized) {
     return (
     <div className='flex justify-center items-center h-[85vh] flex-col'>
       <h1 className="text-2xl font-bold">You are not authorized to access this document</h1>
@@ -424,568 +433,570 @@ const RichTextEditor = () => {
   return (
     <div className={`min-h-screen p-6 transition-all duration-300 ${themeClasses}`}>
       < InviteUserModal docId={id} open={isInviteModalOpen} setOpen={()=>setIsInviteModalOpen(false)} />
-      {/* Top Bar: Everything on the same line */}
-      <div className="flex justify-between items-center mb-6">
-        {/* Left: Logo and Title */}
-        <div className="flex items-center space-x-3">
-          <span title='Document Name'>Name: <Badge className="bg-green-400 py-1" variant={'outline'}>{name || 'Untitled Document'}</Badge></span>
-          <span title='Document Owner'>Owner: <Badge className="bg-red-400 py-1" variant={'outline'}>{isOwner ? 'You' : owner || 'Unknown'}</Badge></span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            {viewers.map((user, idx) => (
-              <span
-                key={idx}
-                className="inline-block w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold overflow-hidden"
-                style={{ borderColor: user?.color || 'black' }}
-                title={user?.name || 'Anonymous'}
-              >
-                <img
-                  src={user?.avatar || 'https://www.gravatar.com/avatar/?d=mp'}
-                  alt={user?.name || 'User Avatar'}
-                  className="w-full h-full object-cover rounded-full"
-                />
+      <div>
+        {/* Top Bar: Everything on the same line */}
+        <div className="flex justify-between items-center mb-6">
+          {/* Left: Logo and Title */}
+          <div className="flex items-center space-x-3">
+            <span title='Document Name'>Name: <Badge className="bg-green-400 py-1" variant={'outline'}>{name || 'Untitled Document'}</Badge></span>
+            <span title='Document Owner'>Owner: <Badge className="bg-red-400 py-1" variant={'outline'}>{isOwner ? 'You' : owner || 'Unknown'}</Badge></span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              {viewers.map((user, idx) => (
                 <span
-                  className="absolute bottom-0 right-0 w-2.5 h-2.5 border-2 rounded-full"
-                  style={{
-                    backgroundColor: user.color || 'green',
-                    borderColor: user.color || 'white',
-                  }}
-                ></span>
-              </span>
-            ))}
+                  key={idx}
+                  className="inline-block w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold overflow-hidden"
+                  style={{ borderColor: user?.color || 'black' }}
+                  title={user?.name || 'Anonymous'}
+                >
+                  <img
+                    src={user?.avatar || 'https://www.gravatar.com/avatar/?d=mp'}
+                    alt={user?.name || 'User Avatar'}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                  <span
+                    className="absolute bottom-0 right-0 w-2.5 h-2.5 border-2 rounded-full"
+                    style={{
+                      backgroundColor: user.color || 'green',
+                      borderColor: user.color || 'white',
+                    }}
+                  ></span>
+                </span>
+              ))}
 
+            </div>
+            {isOwner && <Button onClick={() => setIsInviteModalOpen(true)}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Invite
+            </Button>}
+            <Button onClick={()=> navigate(-1)} variant='destructive'>
+              Leave
+            </Button>
+            <Button
+              onClick={() => setOpen(!open)}
+              variant="secondary" 
+              size="icon"
+              title="Save Document"
+            >
+              <Save className="w-5 h-5" />
+            </Button>
           </div>
-          {isOwner && <Button onClick={() => setIsInviteModalOpen(true)}>
-            <UserPlus className="w-4 h-4 mr-2" />
-            Invite
-          </Button>}
-          <Button onClick={()=> navigate(-1)} variant='destructive'>
-            Leave
-          </Button>
-          <Button
-            onClick={() => setOpen(!open)}
-            variant="secondary" 
-            size="icon"
-            title="Save Document"
-          >
-            <Save className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className={`border rounded-lg p-4 mb-4 shadow-lg ${toolbarClasses}`}>
-        <div className="flex flex-wrap gap-2 items-center">
-          {/* History Controls */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().undo()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.can().undo() && 'opacity-50 cursor-not-allowed'}`}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().redo()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.can().redo() && 'opacity-50 cursor-not-allowed'}`}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Text Formatting */}
-          <div className="flex items-center space-x-1 mr-2">
-            <button
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('bold') ? activeButtonClasses : ''}`}
-              title="Bold (Ctrl+B)"
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('italic') ? activeButtonClasses : ''}`}
-              title="Italic (Ctrl+I)"
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('underline') ? activeButtonClasses : ''}`}
-              title="Underline (Ctrl+U)"
-            >
-              <UnderlineIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('strike') ? activeButtonClasses : ''}`}
-              title="Strikethrough"
-            >
-              <Strikethrough className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleHighlight().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('highlight') ? activeButtonClasses : ''}`}
-              title="Highlight Text"
-            >
-              <Highlighter className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleSubscript().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('subscript') ? activeButtonClasses : ''}`}
-              title="Subscript (Ctrl+Shift+-)"
-            >
-              <SubscriptIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleSuperscript().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('superscript') ? activeButtonClasses : ''}`}
-              title="Subscript (Ctrl+Shift+-)"
-            >
-              <SuperscriptIcon className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Headings */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 1 }) ? activeButtonClasses : ''}`}
-              title="Heading 1"
-            >
-              <Heading1 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 2 }) ? activeButtonClasses : ''}`}
-              title="Heading 2"
-            >
-              <Heading2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 3 }) ? activeButtonClasses : ''}`}
-              title="Heading 3"
-            >
-              <Heading3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().setParagraph().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('paragraph') ? activeButtonClasses : ''}`}
-              title="Paragraph"
-            >
-              <Type className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Alignment */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={() => editor.chain().focus().setTextAlign('left').run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'left' }) ? activeButtonClasses : ''}`}
-              title="Align Left"
-            >
-              <AlignLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().setTextAlign('center').run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'center' }) ? activeButtonClasses : ''}`}
-              title="Align Center"
-            >
-              <AlignCenter className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().setTextAlign('right').run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'right' }) ? activeButtonClasses : ''}`}
-              title="Align Right"
-            >
-              <AlignRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'justify' }) ? activeButtonClasses : ''}`}
-              title="Justify"
-            >
-              <AlignJustify className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Lists and Structure */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('bulletList') ? activeButtonClasses : ''}`}
-              title="Bullet List"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('orderedList') ? activeButtonClasses : ''}`}
-              title="Numbered List"
-            >
-              <ListOrdered className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('blockquote') ? activeButtonClasses : ''}`}
-              title="Quote Block"
-            >
-              <Quote className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Code */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={() => editor.chain().focus().toggleCode().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('code') ? activeButtonClasses : ''}`}
-              title="Inline Code (Ctrl+`)"
-            >
-              <CodeIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('codeBlock') ? activeButtonClasses : ''}`}
-              title="Code Block"
-            >
-              <Code2 className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Links and Media */}
-          <div className="flex items-center space-x-1 mr-4">
-            <button
-              onClick={setLink}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('link') ? activeButtonClasses : ''}`}
-              title="Insert Link (Ctrl+K)"
-            >
-              <LinkIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().unsetLink().run()}
-              disabled={!editor.isActive('link')}
-              className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.isActive('link') && 'opacity-50 cursor-not-allowed'}`}
-              title="Remove Link"
-            >
-              <Unlink className="w-4 h-4" />
-            </button>
-            <button
-              onClick={addImage}
-              className={`p-2 rounded transition-colors ${buttonClasses}`}
-              title="Insert Image"
-            >
-              <ImageIcon className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-          {/* Table and Advanced */}
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => { setTableModalShow(!tableModalShow) }}
-              className={`p-2 rounded transition-colors ${buttonClasses}`}
-              title="Table Options"
-            >
-              <TableIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().clearNodes().run()}
-              className={`p-2 rounded transition-colors ${buttonClasses}`}
-              title="Clear Formatting"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              className={`p-2 rounded transition-colors ${buttonClasses}`}
-              title="Color Options"
-            >
-              <Palette className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
         </div>
 
-        {/* Color Picker */}
-        {showColorPicker && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">Text:</span>
-                {['#000000', '#dc2626', '#16a34a', '#2563eb', '#ca8a04', '#9333ea', '#c2410c', '#64748b'].map((color) => (
+        {/* Toolbar */}
+        <div className={`border rounded-lg p-4 mb-4 shadow-lg ${toolbarClasses}`}>
+          <div className="flex flex-wrap gap-2 items-center">
+            {/* History Controls */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().undo()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.can().undo() && 'opacity-50 cursor-not-allowed'}`}
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().redo()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.can().redo() && 'opacity-50 cursor-not-allowed'}`}
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Text Formatting */}
+            <div className="flex items-center space-x-1 mr-2">
+              <button
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('bold') ? activeButtonClasses : ''}`}
+                title="Bold (Ctrl+B)"
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('italic') ? activeButtonClasses : ''}`}
+                title="Italic (Ctrl+I)"
+              >
+                <Italic className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('underline') ? activeButtonClasses : ''}`}
+                title="Underline (Ctrl+U)"
+              >
+                <UnderlineIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('strike') ? activeButtonClasses : ''}`}
+                title="Strikethrough"
+              >
+                <Strikethrough className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleHighlight().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('highlight') ? activeButtonClasses : ''}`}
+                title="Highlight Text"
+              >
+                <Highlighter className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleSubscript().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('subscript') ? activeButtonClasses : ''}`}
+                title="Subscript (Ctrl+Shift+-)"
+              >
+                <SubscriptIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleSuperscript().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('superscript') ? activeButtonClasses : ''}`}
+                title="Subscript (Ctrl+Shift+-)"
+              >
+                <SuperscriptIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Headings */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 1 }) ? activeButtonClasses : ''}`}
+                title="Heading 1"
+              >
+                <Heading1 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 2 }) ? activeButtonClasses : ''}`}
+                title="Heading 2"
+              >
+                <Heading2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('heading', { level: 3 }) ? activeButtonClasses : ''}`}
+                title="Heading 3"
+              >
+                <Heading3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().setParagraph().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('paragraph') ? activeButtonClasses : ''}`}
+                title="Paragraph"
+              >
+                <Type className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Alignment */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'left' }) ? activeButtonClasses : ''}`}
+                title="Align Left"
+              >
+                <AlignLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'center' }) ? activeButtonClasses : ''}`}
+                title="Align Center"
+              >
+                <AlignCenter className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'right' }) ? activeButtonClasses : ''}`}
+                title="Align Right"
+              >
+                <AlignRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive({ textAlign: 'justify' }) ? activeButtonClasses : ''}`}
+                title="Justify"
+              >
+                <AlignJustify className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Lists and Structure */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('bulletList') ? activeButtonClasses : ''}`}
+                title="Bullet List"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('orderedList') ? activeButtonClasses : ''}`}
+                title="Numbered List"
+              >
+                <ListOrdered className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('blockquote') ? activeButtonClasses : ''}`}
+                title="Quote Block"
+              >
+                <Quote className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Code */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={() => editor.chain().focus().toggleCode().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('code') ? activeButtonClasses : ''}`}
+                title="Inline Code (Ctrl+`)"
+              >
+                <CodeIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('codeBlock') ? activeButtonClasses : ''}`}
+                title="Code Block"
+              >
+                <Code2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Links and Media */}
+            <div className="flex items-center space-x-1 mr-4">
+              <button
+                onClick={setLink}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${editor.isActive('link') ? activeButtonClasses : ''}`}
+                title="Insert Link (Ctrl+K)"
+              >
+                <LinkIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().unsetLink().run()}
+                disabled={!editor.isActive('link')}
+                className={`p-2 rounded transition-colors ${buttonClasses} ${!editor.isActive('link') && 'opacity-50 cursor-not-allowed'}`}
+                title="Remove Link"
+              >
+                <Unlink className="w-4 h-4" />
+              </button>
+              <button
+                onClick={addImage}
+                className={`p-2 rounded transition-colors ${buttonClasses}`}
+                title="Insert Image"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+            {/* Table and Advanced */}
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => { setTableModalShow(!tableModalShow) }}
+                className={`p-2 rounded transition-colors ${buttonClasses}`}
+                title="Table Options"
+              >
+                <TableIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().clearNodes().run()}
+                className={`p-2 rounded transition-colors ${buttonClasses}`}
+                title="Clear Formatting"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className={`p-2 rounded transition-colors ${buttonClasses}`}
+                title="Color Options"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`w-px h-6 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+          </div>
+
+          {/* Color Picker */}
+          {showColorPicker && (
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Text:</span>
+                  {['#000000', '#dc2626', '#16a34a', '#2563eb', '#ca8a04', '#9333ea', '#c2410c', '#64748b'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => editor.chain().focus().setColor(color).run()}
+                      className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      title={`Text Color: ${color}`}
+                    />
+                  ))}
                   <button
-                    key={color}
-                    onClick={() => editor.chain().focus().setColor(color).run()}
-                    className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: color }}
-                    title={`Text Color: ${color}`}
-                  />
-                ))}
-                <button
-                  onClick={() => editor.chain().focus().unsetColor().run()}
-                  className={`px-2 py-1 text-xs rounded border ${buttonClasses} border-gray-300 dark:border-gray-600`}
-                >
-                  Reset
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">Highlight:</span>
-                {['transparent', '#fef3c7', '#dcfce7', '#dbeafe', '#fce7f3', '#f3e8ff', '#fed7aa', '#f1f5f9'].map((color) => (
+                    onClick={() => editor.chain().focus().unsetColor().run()}
+                    className={`px-2 py-1 text-xs rounded border ${buttonClasses} border-gray-300 dark:border-gray-600`}
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Highlight:</span>
+                  {['transparent', '#fef3c7', '#dcfce7', '#dbeafe', '#fce7f3', '#f3e8ff', '#fed7aa', '#f1f5f9'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
+                      className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color === 'transparent' ? 'transparent' : color, border: color === 'transparent' ? '2px dashed #9ca3af' : '2px solid #d1d5db' }}
+                      title={`Highlight: ${color}`}
+                    />
+                  ))}
                   <button
-                    key={color}
-                    onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
-                    className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: color === 'transparent' ? 'transparent' : color, border: color === 'transparent' ? '2px dashed #9ca3af' : '2px solid #d1d5db' }}
-                    title={`Highlight: ${color}`}
-                  />
-                ))}
-                <button
-                  onClick={() => editor.chain().focus().unsetHighlight().run()}
-                  className={`px-2 py-1 text-xs rounded border ${buttonClasses} border-gray-300 dark:border-gray-600`}
-                >
-                  Reset
-                </button>
+                    onClick={() => editor.chain().focus().unsetHighlight().run()}
+                    className={`px-2 py-1 text-xs rounded border ${buttonClasses} border-gray-300 dark:border-gray-600`}
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Table Modal */}
-        {tableModalShow && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Insert Table"
-                >
-                  <TableIcon className="w-4 h-4" />
-                </button>
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Add column before"
-                  onClick={() => editor.chain().focus().addColumnBefore().run()}>
-                  <PlusCircle className="w-4 h-4" />
-                </button>
+          {/* Table Modal */}
+          {tableModalShow && (
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Insert Table"
+                  >
+                    <TableIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Add column before"
+                    onClick={() => editor.chain().focus().addColumnBefore().run()}>
+                    <PlusCircle className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Add column after"
-                  onClick={() => editor.chain().focus().addColumnAfter().run()}
-                >
-                  <PlusSquare className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Add column after"
+                    onClick={() => editor.chain().focus().addColumnAfter().run()}
+                  >
+                    <PlusSquare className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Delete column"
-                  onClick={() => editor.chain().focus().deleteColumn().run()}
-                >
-                  <MinusSquare className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Delete column"
+                    onClick={() => editor.chain().focus().deleteColumn().run()}
+                  >
+                    <MinusSquare className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Add row before"
-                  onClick={() => editor.chain().focus().addRowBefore().run()}
-                >
-                  <ArrowUp className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Add row before"
+                    onClick={() => editor.chain().focus().addRowBefore().run()}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Add row after"
-                  onClick={() => editor.chain().focus().addRowAfter().run()}
-                >
-                  <ArrowDown className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Add row after"
+                    onClick={() => editor.chain().focus().addRowAfter().run()}
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Delete row"
-                  onClick={() => editor.chain().focus().deleteRow().run()}
-                >
-                  <MinusCircle className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Delete row"
+                    onClick={() => editor.chain().focus().deleteRow().run()}
+                  >
+                    <MinusCircle className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Delete table"
-                  onClick={() => editor.chain().focus().deleteTable().run()}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Delete table"
+                    onClick={() => editor.chain().focus().deleteTable().run()}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Merge cells"
-                  onClick={() => editor.chain().focus().mergeCells().run()}
-                >
-                  <Merge className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Merge cells"
+                    onClick={() => editor.chain().focus().mergeCells().run()}
+                  >
+                    <Merge className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Split cell"
-                  onClick={() => editor.chain().focus().splitCell().run()}
-                >
-                  <Split className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Split cell"
+                    onClick={() => editor.chain().focus().splitCell().run()}
+                  >
+                    <Split className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Toggle header column"
-                  onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
-                >
-                  <Columns2 className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Toggle header column"
+                    onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
+                  >
+                    <Columns2 className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Toggle header row"
-                  onClick={() => editor.chain().focus().toggleHeaderRow().run()}
-                >
-                  <LayoutList className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Toggle header row"
+                    onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+                  >
+                    <LayoutList className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Toggle header cell"
-                  onClick={() => editor.chain().focus().toggleHeaderCell().run()}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Toggle header cell"
+                    onClick={() => editor.chain().focus().toggleHeaderCell().run()}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Merge or split"
-                  onClick={() => editor.chain().focus().mergeOrSplit().run()}
-                >
-                  <DivideSquare className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Merge or split"
+                    onClick={() => editor.chain().focus().mergeOrSplit().run()}
+                  >
+                    <DivideSquare className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Set cell attribute (colspan 2)"
-                  onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}
-                >
-                  <TableProperties className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Set cell attribute (colspan 2)"
+                    onClick={() => editor.chain().focus().setCellAttribute('colspan', 2).run()}
+                  >
+                    <TableProperties className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Fix tables"
-                  onClick={() => editor.chain().focus().fixTables().run()}
-                >
-                  <Wand2 className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Fix tables"
+                    onClick={() => editor.chain().focus().fixTables().run()}
+                  >
+                    <Wand2 className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Go to next cell"
-                  onClick={() => editor.chain().focus().goToNextCell().run()}
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Go to next cell"
+                    onClick={() => editor.chain().focus().goToNextCell().run()}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
 
-                <button
-                  className={`p-2 rounded transition-colors ${buttonClasses}`}
-                  title="Go to previous cell"
-                  onClick={() => editor.chain().focus().goToPreviousCell().run()}
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
+                  <button
+                    className={`p-2 rounded transition-colors ${buttonClasses}`}
+                    title="Go to previous cell"
+                    onClick={() => editor.chain().focus().goToPreviousCell().run()}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* Editor with Bubble Menu */}
+        {editor && (
+          <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+            <div className={`flex items-center space-x-1 p-1 rounded shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+              <button
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={`p-1 rounded ${buttonClasses} ${editor.isActive('bold') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={`p-1 ${buttonClasses} rounded ${editor.isActive('italic') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
+              >
+                <Italic className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                className={`p-1 rounded ${buttonClasses} ${editor.isActive('underline') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
+              >
+                <UnderlineIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={setLink}
+                className={`p-1 rounded ${buttonClasses} ${editor.isActive('link') ? (isDarkMode && activeButtonClasses) : ''}`}
+              >
+                <LinkIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </BubbleMenu>
         )}
-      </div>
 
-      {/* Editor with Bubble Menu */}
-      {editor && (
-        <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
-          <div className={`flex items-center space-x-1 p-1 rounded shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
-            <button
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-1 rounded ${buttonClasses} ${editor.isActive('bold') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-1 ${buttonClasses} rounded ${editor.isActive('italic') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              className={`p-1 rounded ${buttonClasses} ${editor.isActive('underline') ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-500') : ''}`}
-            >
-              <UnderlineIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={setLink}
-              className={`p-1 rounded ${buttonClasses} ${editor.isActive('link') ? (isDarkMode && activeButtonClasses) : ''}`}
-            >
-              <LinkIcon className="w-4 h-4" />
-            </button>
+        {/* Editor Content */}
+        {!isLoading &&<div className={`border rounded-lg p-6 min-h-96 shadow-lg transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${editorClasses} not-tailwind`}>
+          <EditorContent editor={editor} />
+        </div>}
+
+        {/* Status Bar */}
+        <div className={`mt-4 p-3 text-sm rounded-lg flex justify-between items-center ${isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
+          <div className="flex items-center space-x-4">
+            <span>✅ Ready</span>
+            <span>📄 Words: {wordCount}</span>
+            <span>🔤 Characters: {charCount}</span>
           </div>
-        </BubbleMenu>
-      )}
-
-      {/* Editor Content */}
-      <div className={`border rounded-lg p-6 min-h-96 shadow-lg transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${editorClasses} not-tailwind`}>
-        <EditorContent editor={editor} />
-      </div>
-
-      {/* Status Bar */}
-      <div className={`mt-4 p-3 text-sm rounded-lg flex justify-between items-center ${isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
-        <div className="flex items-center space-x-4">
-          <span>✅ Ready</span>
-          <span>📄 Words: {wordCount}</span>
-          <span>🔤 Characters: {charCount}</span>
-        </div>
-        <div className="flex items-center space-x-2 text-xs">
-          <span>💡 Tip: Use Ctrl+B, Ctrl+I, Ctrl+U for quick formatting</span>
-        </div>
-      </div>
-
-      {/* Keyboard Shortcuts Help */}
-      <div className={`mt-2 p-2 text-xs rounded ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-500'}`}>
-        <details>
-          <summary className="cursor-pointer hover:text-blue-500">Keyboard Shortcuts</summary>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+B</kbd> Bold</span>
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+I</kbd> Italic</span>
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+U</kbd> Underline</span>
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+K</kbd> Insert Link</span>
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+`</kbd> Inline Code</span>
-            <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Tab</kbd> Indent in Code</span>
+          <div className="flex items-center space-x-2 text-xs">
+            <span>💡 Tip: Use Ctrl+B, Ctrl+I, Ctrl+U for quick formatting</span>
           </div>
-        </details>
+        </div>
+
+        {/* Keyboard Shortcuts Help */}
+        <div className={`mt-2 p-2 text-xs rounded ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-500'}`}>
+          <details>
+            <summary className="cursor-pointer hover:text-blue-500">Keyboard Shortcuts</summary>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+B</kbd> Bold</span>
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+I</kbd> Italic</span>
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+U</kbd> Underline</span>
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+K</kbd> Insert Link</span>
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Ctrl+`</kbd> Inline Code</span>
+              <span><kbd className={`px-1 py-0.5 ${buttonClasses} rounded text-xs`}>Tab</kbd> Indent in Code</span>
+            </div>
+          </details>
+        </div>
       </div>
       <div className="fixed bottom-4 right-4 z-50">
-        {/* <Message darkMode={isDarkMode} yChatArray={yChatArray} username={userName} /> */}
+        <Message darkMode={isDarkMode} yChatArray={yChatArray} username={userName} userId={user._id} />
       </div>
       < DownloadOptionModal saveContent={saveContent} setOpen={()=>setOpen(false)} isOpen={open} />
       {isLoading && <Loader />}

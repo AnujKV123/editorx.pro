@@ -46,6 +46,7 @@
     "@tiptap/starter-kit": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "crypto-js": "^4.2.0",
     "file-saver": "^2.0.5",
     "firebase": "^11.10.0",
     "html-docx-js": "^0.3.1",

@@ -14,6 +14,7 @@ Built with ❤️ using React.js, Node.js, Express.js, Yjs, and Firebase.
 - ✅ Persistent Sessions and Token Handling
 - ✅ Scalable Backend APIs with Express.js
 - ✅ Responsive and Clean UI
+- ✅ Secure real-time chat with end-to-end encryption
 
 ## 🧠 Tech Stack
 
@@ -64,6 +65,7 @@ Built with ❤️ using React.js, Node.js, Express.js, Yjs, and Firebase.
     REACT_APP_MEASUREMENT_ID=
     REACT_APP_SOCKET_URL=ws://localhost:1234
     REACT_APP_BACKEND_URL=http://localhost:5000
+    REACT_APP_MESSAGE_SECRET_KEY=
    ```
 
 4. *Start the development server*

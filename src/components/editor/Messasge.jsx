@@ -1,19 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
+import { cn } from "../../lib/utils";
+import { MessageSquareText, X, SendHorizonal } from "lucide-react";
+import CryptoJS from 'crypto-js';
 
-const Message = ({ darkMode, yChatArray, username = 'Anonymous' }) => {
+
+// Avatar colors for uniqueness
+const avatarColors = [
+  "bg-red-500",
+  "bg-green-500",
+  "bg-blue-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-teal-500",
+];
+
+const getColorForUser = (id) => {
+  const index = Math.abs(id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)) % avatarColors.length;
+  return avatarColors[index];
+};
+
+const getInitials = (name) =>
+  name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
+const Message = ({ darkMode, yChatArray, username = 'Anonymous', userId }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [messageInput, setMessageInput] = useState('');
-  const messagesListRef = useRef(null);
+  const [messageInput, setMessageInput] = useState("");
+  const messagesRef = useRef(null);
 
-  // Theme toggle
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  useEffect(() => {
-    setIsDarkMode(darkMode);
-  }, [darkMode]);
-
-  // Listen to Yjs updates
-  useEffect(() => {
+   useEffect(() => {
     if (!yChatArray) return;
 
     const handleUpdate = (event) => {
@@ -28,8 +51,6 @@ const Message = ({ darkMode, yChatArray, username = 'Anonymous' }) => {
     };
 
     yChatArray.observe(handleUpdate);
-
-    // Initial load
     setMessages(yChatArray.toArray());
 
     return () => {
@@ -37,115 +58,147 @@ const Message = ({ darkMode, yChatArray, username = 'Anonymous' }) => {
     };
   }, [yChatArray]);
 
-  // Auto scroll
   useEffect(() => {
-    if (messagesListRef.current) {
-      messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [messages, isExpanded]);
+  }, [messages, isOpen]);
 
   const handleSendMessage = () => {
-    const trimmedMessage = messageInput.trim();
-    if (!trimmedMessage || !yChatArray) return;
+    const trimmed = messageInput.trim();
+    if (!trimmed || !yChatArray) return;
 
-    const now = new Date();
-    const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     yChatArray.push([
       {
         sender: username,
+        senderId: userId,
         timestamp,
-        content: trimmedMessage,
-        type: 'sent', // Optional: you could omit this and determine locally
+        content: encryptMessage(trimmed),
       },
     ]);
 
-    setMessageInput('');
+    setMessageInput("");
   };
 
-  const toggleMessageBar = () => {
-    setIsExpanded((prev) => !prev);
+  const secretKey = process.env.REACT_APP_MESSAGE_SECRET_KEY;
+  const encryptMessage = (data) => {
+    const ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), secretKey).toString();
+    return ciphertext;
   };
 
-  // Keyboard toggle
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'ArrowUp' && !isExpanded) {
-        event.preventDefault();
-        toggleMessageBar();
-      } else if (event.key === 'Escape' && isExpanded) {
-        toggleMessageBar();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isExpanded]);
+  const decryptMessage = (ciphertext) => {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, secretKey);
+    const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+    return decryptedData;
+  };
 
   return (
-    <div className={`${isDarkMode ? 'dark' : ''}`}>
-      <div className={`w-full max-w-md mx-auto mt-8 border rounded-lg shadow-lg bg-white ${isDarkMode ? 'dark:bg-gray-800 dark:border-gray-700' : ''}`}>
-        {/* Toggle Header */}
-        <button
-          className="w-full flex items-center justify-between px-4 py-2 bg-blue-600 text-white font-semibold rounded-t-lg"
-          onClick={toggleMessageBar}
+    <>
+      {/* Floating toggle button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setIsOpen(prev => !prev)}
+          className="rounded-full px-3 py-5 shadow-lg"
+          title = "Chat"
+          variant="default"
         >
-          <span>Room Message</span>
-          <span className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>&#9650;</span>
-        </button>
+          <MessageSquareText className="w-5 h-5" />
+        </Button>
+      </div>
 
-        {/* Chat Content */}
-        <div className={`transition-all duration-300 ${isExpanded ? 'max-h-[500px]' : 'max-h-0'} overflow-hidden`}>
-          <div className="h-64 overflow-y-auto px-4 py-2 space-y-4" ref={messagesListRef}>
-            {messages.map((msg, index) => {
-              const isOwnMessage = msg.sender === username;
-              return (
-                <div key={index} className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                  <div className={`text-xs text-gray-500 ${isDarkMode ? 'dark:text-gray-400' : ''} mb-1`}>
-                    {`${msg.sender} - ${msg.timestamp}`}
-                  </div>
+      {/* Chat popup */}
+      <div
+        className={cn(
+          "fixed bottom-20 right-6 w-[360px] max-h-[600px] bg-white dark:bg-zinc-900 rounded-xl border border-border shadow-xl z-50 flex flex-col transition-all duration-300",
+          isOpen ? "opacity-100 translate-y-0" : "opacity-0 pointer-events-none translate-y-4"
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b dark:border-zinc-700">
+          <h2 className="font-semibold text-lg text-gray-800 dark:text-white">
+            Chat
+          </h2>
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={messagesRef}>
+          {messages.map((msg, index) => {
+            const isMe = msg.senderId === userId;
+            const avatarColor = getColorForUser(msg.senderId || "default");
+            return (
+              <div
+                key={index}
+                className={cn("flex items-start space-x-2", isMe ? "justify-end" : "justify-start")}
+              >
+                {!isMe && (
                   <div
-                    className={`px-4 py-2 rounded-lg max-w-xs break-words ${
-                      isOwnMessage
-                        ? 'bg-blue-500 text-white'
-                        : `bg-gray-200 text-gray-900 ${isDarkMode ? 'dark:bg-gray-700 dark:text-gray-100' : ''}`
-                    }`}
+                    className={cn(
+                      "w-8 h-8 p-4 rounded-full flex items-center justify-center text-white text-sm font-semibold",
+                      avatarColor
+                    )}
                   >
-                    {msg.content}
+                    {getInitials(msg.sender)}
+                  </div>
+                )}
+                <div className='flex flex-col'>
+                  <div className={cn(isMe ? "flex justify-end" : "flex justify-start")}>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      {msg.sender} • {msg.timestamp}
+                    </div>
+                  </div>
+                  <div className={cn(isMe ? "flex justify-end" : "flex justify-start")}>
+                    <div
+                      className={cn(
+                        "px-3 py-2 rounded-lg max-w-[85%] text-sm break-words",
+                        isMe
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white"
+                      )}
+                    >
+                      {decryptMessage(msg.content)}
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                {isMe && (
+                  <div
+                    className={cn(
+                      "w-8 h-8 p-4 rounded-full flex items-center justify-center text-white text-sm font-semibold",
+                      avatarColor
+                    )}
+                  >
+                    {getInitials(msg.sender)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-          {/* Input Bar */}
-          <div className={`flex items-center border-t px-4 py-2 bg-gray-100 ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600' : ''}`}>
-            <input
-              type="text"
-              placeholder="Type a message..."
-              className={`flex-1 rounded-full px-4 py-2 text-sm text-gray-900 ${isDarkMode ? 'dark:text-white dark:bg-gray-800' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-            <button
-              onClick={handleSendMessage}
-              className={`ml-2 p-2 text-blue-600 ${isDarkMode ? 'dark:text-blue-400 dark:hover:text-blue-300' : 'hover:text-blue-800'} transition-colors`}
-              aria-label="Send Message"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            </button>
-          </div>
+        {/* Input */}
+        <div className="flex items-center border-t px-4 py-3 bg-gray-100 dark:bg-zinc-800 dark:border-zinc-700">
+          <Textarea
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            placeholder="Type a message"
+            className="flex-1 mr-2 max-h-14 min-h-10 overflow-y-auto"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSendMessage();
+            }}
+          />
+          <Button title="Send" onClick={handleSendMessage} size="sm">
+            < SendHorizonal className="w-4 h-4" />
+          </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
