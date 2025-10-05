@@ -32,11 +32,11 @@ const Login = () => {
   const { logInResolver } = FormResolvers();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState({loader1: false, loader2: false});
 
   const onSubmitFunc = async (data) => {
     const { email, password } = data;
-    setLoader(true);
+    setLoader(prev => ({...prev, loader1: true}));
     toast({ title: "Logging in, please wait 😊." });
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -51,7 +51,7 @@ const Login = () => {
           title: "Email not verified. A new verification link was sent.",
         });
         await signOut(auth);
-        setLoader(false);
+        setLoader(prev => ({...prev, loader1: false}));
       } else {
         if (user.emailVerified) {
           const token = user.accessToken;
@@ -74,27 +74,28 @@ const Login = () => {
                 user: res.data,
               })
             );
-            setLoader(false);
+            setLoader(prev => ({...prev, loader1: false}));
             toast({ title: "Logged in successfully 😊." });
             navigate(`/document`);
           }
         } else {
           await signOut(auth);
-          setLoader(false);
+          setLoader(prev => ({...prev, loader1: false}));
         }
       }
-      setLoader(false);
     } catch (error) {
       console.info(error);
-      setLoader(false);
       toast({
         title: "username and password does not match, please try again 😌.",
       });
     }
-    setLoader(false);
+    finally {
+      setLoader(prev => ({...prev, loader1: false}));
+    }
   };
 
   const handleGoogleSignIn = async () => {
+    setLoader(prev => ({...prev, loader2: true}));
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -123,6 +124,9 @@ const Login = () => {
     } catch (error) {
       toast({ title: "some error occured, please try again 😌." });
       console.info(error);
+    }
+    finally {
+      setLoader(prev => ({...prev, loader2: false}));
     }
   };
   return (
@@ -160,8 +164,8 @@ const Login = () => {
                 control={logInResolver.control}
                 fieldType={inputTypes.INPUTFIELD}
               />
-              <Button disabled={loader} type="submit" className="w-full">
-                {loader ? (
+              <Button disabled={loader.loader1} type="submit" className="w-full">
+                {loader.loader1 ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Please Wait
@@ -182,9 +186,17 @@ const Login = () => {
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 className="w-full"
+                disabled={loader.loader2}
               >
                 {/* <FcGoogle className="mr-2" />  */}
-                Sign in with Google
+                {loader.loader2 ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please Wait
+                  </>
+                ) : (
+                  "Sign in with Google"
+                )}
               </Button>
               <Button variant="outline" disabled className="w-full">
                 <Github className="mr-2" width={20} height={20} />

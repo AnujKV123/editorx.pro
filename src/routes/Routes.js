@@ -61,15 +61,15 @@ const routesData = [
     ),
     outlet: <Login />,
   },
-  {
-    path: "/change-password",
-    element: (
-      <PublicRoute>
-        <Layout />
-      </PublicRoute>
-    ),
-    outlet: <ChangePassword />,
-  },
+  // {
+  //   path: "/change-password",
+  //   element: (
+  //     <PublicRoute>
+  //       <Layout />
+  //     </PublicRoute>
+  //   ),
+  //   outlet: <ChangePassword />,
+  // },
   {
     path: "/home",
     element: (
@@ -84,20 +84,20 @@ const routesData = [
       </main>
     ),
   },
-  {
-    path: "/document",
-    element: (
-      <ProtectedRoute>
-        <Profile />
-        <Layout />
-      </ProtectedRoute>
-    ),
-    outlet: (
-      <main className="pt-20">
-        <Document />
-      </main>
-    ),
-  },
+  // {
+  //   path: "/document",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Profile />
+  //       <Layout />
+  //     </ProtectedRoute>
+  //   ),
+  //   outlet: (
+  //     <main className="pt-20">
+  //       <Document />
+  //     </main>
+  //   ),
+  // },
   {
     path: "/document/:id",
     element: (
@@ -112,21 +112,21 @@ const routesData = [
       </main>
     ),
   },
-  {
-    path: "/docs",
-    element: <Layout />,
-    outlet: <CommingSoon />,
-  },
-  {
-    path: "/pricing",
-    element: <Layout />,
-    outlet: <CommingSoon />,
-  },
-  {
-    path: "/contact-us",
-    element: <Layout />,
-    outlet: <CommingSoon />,
-  },
+  // {
+  //   path: "/docs",
+  //   element: <Layout />,
+  //   outlet: <CommingSoon />,
+  // },
+  // {
+  //   path: "/pricing",
+  //   element: <Layout />,
+  //   outlet: <CommingSoon />,
+  // },
+  // {
+  //   path: "/contact-us",
+  //   element: <Layout />,
+  //   outlet: <CommingSoon />,
+  // },
 ];
 
 export default routesData;

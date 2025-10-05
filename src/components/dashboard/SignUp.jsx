@@ -32,12 +32,12 @@ const SignUp = () => {
   const { signUpResolver } = FormResolvers();
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState({loader1: false, loader2: false});
   const dispatch = useDispatch();
 
   const onSubmitFunc = async (data) => {
     const { email, password, username } = data;
-    setLoader(true);
+    setLoader(prev=> ({...prev, loader1: true}));
     toast({ title: "creating user, please wait... 😊." });
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -50,7 +50,6 @@ const SignUp = () => {
       });
       await sendEmailVerification(userCredential.user);
       if (userCredential.user) {
-        setLoader(false);
         toast({
           title: "User registered successfully !",
           description: `Please check your email to verify your account 😊.`,
@@ -58,17 +57,19 @@ const SignUp = () => {
         navigate("/login");
       }
     } catch (error) {
-      setLoader(false);
       toast({
         title: "user already exist, please try with different email 😊.",
       });
       console.info(error);
     }
-    setLoader(false);
+    finally{
+      setLoader(prev=> ({...prev, loader1: false}));
+    }
   };
 
   const handleGoogleSignIn = async () => {
     try {
+      setLoader(prev => ({...prev, loader2: true}));
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       const token = user.accessToken;
@@ -96,6 +97,9 @@ const SignUp = () => {
     } catch (error) {
       toast({ title: "some error occured, please try again 😌." });
       console.info(error);
+    }
+    finally{
+      setLoader(prev => ({...prev, loader2: false}));
     }
   };
 
@@ -173,8 +177,8 @@ const SignUp = () => {
                             placeholder="please select the subscription plan"
                             content = {selectContent}
                         /> */}
-              <Button disabled={loader} type="submit" className="w-full">
-                {loader ? (
+              <Button disabled={loader.loader1} type="submit" className="w-full">
+                {loader.loader1 ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Please Wait
@@ -194,9 +198,17 @@ const SignUp = () => {
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 className="w-full"
+                disabled={loader.loader2}
               >
                 {/* <FcGoogle className="mr-2" />  */}
-                Sign in with Google
+                {loader.loader2 ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please Wait
+                  </>
+                ) : (
+                  "Sign in with Google"
+                )}
               </Button>
               <Button variant="outline" disabled className="w-full">
                 <Github className="mr-2" width={20} height={20} />
